@@ -94,7 +94,7 @@ class VirtualMachine:
         self.memory[location] = instruction
         print("Successfully binded preset to an instruction ")
 
-    def add_instruction(self,instruction_type,operands=[],modes=None,notes=None,instruction_preset=None):
+    def add_instruction(self,instruction_type,operands=[],modes=None,notes=None,preset=None):
 
         if not modes:
             modes = ['i'] * len(operands) # set all operand to be immediate mode by default
@@ -124,12 +124,12 @@ class VirtualMachine:
         "location":self.stack,
         "purpose":INSTRUCTION,
         "addressing-modes":modes,
-        "preset":instruction_preset}
+        "preset":preset}
 
         self.memory[self.stack] = instruction
         self.stack += 1
 
-        self.bind_instruction_preset(self.stack - 1,instruction_preset)
+        self.bind_instruction_preset(self.stack - 1,preset)
         print("successfully added instruction")
 
         return True
@@ -323,7 +323,7 @@ class VirtualMachine:
 
     #     return (instruction_type in [ADD,SUB,COMPARE,LOAD,STORE] and len(operands) == 2) or \
     #     (instruction_type == JUMP and len(operands) == 1) or (instruction_type in [INPUT,OUTPUT,HALT] and not operands)
-        opcode,operands,modes = instruction['type'],instruction['operands'],instruction['addressing-modes']
+        opcode,operands,modes,preset = instruction['type'],instruction['operands'],instruction['addressing-modes'],instruction['preset']
         
         operands = self.parse_operands(operands,modes,opcode) # get the data of all operands
         
@@ -339,14 +339,7 @@ class VirtualMachine:
                 self.copy(operands[0],operands[1],modes)
 
         elif opcode == JUMP:
-            address = operands[0]
-            data,purpose = self.get_data(address)
-            
-            if purpose != INSTRUCTION:
-                print(f'Cannot jump to data! ')
-                return
-            
-            self.pc = address
+            self.jump(operands[0],preset)
             
         elif opcode in [INPUT,OUTPUT,HALT]:
             if opcode == INPUT:
@@ -358,6 +351,23 @@ class VirtualMachine:
         if debug:
             self.exec_logs(instruction['type']) 
         self.times_executed += 1
+
+    def jump(self,address,presets=None):
+        
+        should_jump = presets == JUMP_ALWAYS or (presets == JUMP_ZERO and self.acc == 0) or (presets == JUMP_POSITIVE and self.acc >= 0)
+
+        if not should_jump:
+            self.pc += 1
+            return
+
+        # jump to new location
+        data,purpose = self.get_data(address)
+            
+        if purpose != INSTRUCTION:
+            print(f'Cannot jump to data! ')
+            return
+            
+        self.pc = address
 
     def get_data_val(self,data,mode):
         if mode == 'i':
