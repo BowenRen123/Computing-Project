@@ -36,6 +36,7 @@ class VirtualMachine:
                                'r6':set([]),
                                'acc':set([]),
                                'pc':set([])}
+        self.times_executed = 0
 
     def __validate_instruction(self,instruction_type,operands):
         # ensure instruction is valid
@@ -65,7 +66,7 @@ class VirtualMachine:
                 return False
         return True
     
-    def add_instruction(self,instruction_type,operands=[],modes=None):
+    def add_instruction(self,instruction_type,operands=[],modes=None,notes=None):
 
         if not modes:
             modes = ['i'] * len(operands) # set all operand to be immediate mode by default
@@ -187,7 +188,8 @@ class VirtualMachine:
             
             return data
 
-    def add_data(self,name,data,mode='i'): 
+    # notes for convenience purposes only 
+    def add_data(self,name,data,mode='i',notes=None): 
         # check if addressing mode is correct
         if mode.lower() not in ['i','d','r']:
             print("Invalid addressing mode! ")
@@ -277,6 +279,7 @@ class VirtualMachine:
 
 
     def exec(self,instruction):
+
     #     return (instruction_type in [ADD,SUB,COMPARE,LOAD,STORE] and len(operands) == 2) or \
     #     (instruction_type == JUMP and len(operands) == 1) or (instruction_type in [INPUT,OUTPUT,HALT] and not operands)
         opcode,operands,modes = instruction['type'],instruction['operands'],instruction['addressing-modes']
@@ -311,6 +314,9 @@ class VirtualMachine:
                 print(self.acc)
             elif opcode == HALT:
                 self.stop()
+
+        print(f"successfully executed instruction {self.times_executed} times")
+        self.times_executed += 1
 
     def get_data_val(self,data,mode):
         if mode == 'i':
