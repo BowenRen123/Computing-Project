@@ -68,7 +68,7 @@ def test_name_duplication():
 
     machine.add_data(f'd',2)
     print('=' * 12)
-    machine.print_memory() 
+    print(machine)
 
 # test_name_duplication()
 
@@ -90,7 +90,7 @@ def test_execution():
     vm.add_instruction(cs.SUB,['x','y'],['d','d'],notes=7)
     vm.add_instruction(cs.OUTPUT,notes=8)
     vm.add_instruction(cs.COMPARE,['y','r1'],['d','r'],notes=9)
-    vm.add_instruction(cs.LOAD,['acc','x'],['r','d'],notes=5)
+    vm.add_instruction(cs.LOAD,['acc','x'],['r','d'],notes=10)
 
     print('=' * 12) 
     vm.run(True) 

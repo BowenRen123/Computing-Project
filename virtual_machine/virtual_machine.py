@@ -66,7 +66,35 @@ class VirtualMachine:
                 return False
         return True
     
-    def add_instruction(self,instruction_type,operands=[],modes=None,notes=None):
+    # add instruction preset to the instruction
+ 
+    def ensure_correct_preset(self,instruction_type,preset):
+        return (instruction_type == JUMP and preset in [None,JUMP_ALWAYS,JUMP_ZERO,JUMP_POSITIVE]) or (instruction_type != JUMP)
+
+    def bind_instruction_preset(self,location,preset):
+        # check if the preset is not none and its a preset from the constants file
+        if preset != None:
+            if preset not in range(MIN_PRESET,MAX_PRESET+1):
+                print("Error! Cannot bind preset to instruction! ")
+                return
+
+        # change the existing instruction preset to the paramter 'preset'
+        
+        instruction = self.memory[location]
+        instruction_type = instruction['type']
+
+        if not self.ensure_correct_preset(instruction_type,preset):
+            print("Preset is inappropriate! ")
+    
+        # set a default preset for the jump instruction 
+        if instruction_type == JUMP and not preset:
+            preset = JUMP_ALWAYS
+
+        instruction['preset'] = preset
+        self.memory[location] = instruction
+        print("Successfully binded preset to an instruction ")
+
+    def add_instruction(self,instruction_type,operands=[],modes=None,notes=None,instruction_preset=None):
 
         if not modes:
             modes = ['i'] * len(operands) # set all operand to be immediate mode by default
@@ -95,10 +123,13 @@ class VirtualMachine:
         "operands":operands,
         "location":self.stack,
         "purpose":INSTRUCTION,
-        "addressing-modes":modes}
+        "addressing-modes":modes,
+        "preset":instruction_preset}
+
         self.memory[self.stack] = instruction
         self.stack += 1
 
+        self.bind_instruction_preset(self.stack - 1,instruction_preset)
         print("successfully added instruction")
 
         return True
@@ -270,6 +301,8 @@ class VirtualMachine:
         if self.pc >= self.memory_size:
             self.stop()
 
+    
+
     # copy data from dest to src provided that src is not a literal
     def copy(self,src,dest,modes):
         if len(modes) != 2:
@@ -293,7 +326,7 @@ class VirtualMachine:
         opcode,operands,modes = instruction['type'],instruction['operands'],instruction['addressing-modes']
         
         operands = self.parse_operands(operands,modes,opcode) # get the data of all operands
-         
+        
 
         if opcode in [ADD,SUB,COMPARE,LOAD,STORE]:
             if opcode == ADD:
@@ -467,12 +500,23 @@ class VirtualMachine:
                 my_str += f'type: {self.get_instruction_str(data['type'])}\n'
                 my_str += f'operands: {data["operands"]}\n'
                 my_str += f'addressing-modes: {data['addressing-modes']}\n'
+                my_str += f'preset: {self.get_preset_str(data['preset'])}\n'
  
             my_str += f'location: {data['location']}\n'
             my_str += f'purpose: {self.get_purpose_str(data['purpose'])}\n'
             my_str += "\n"
 
         return my_str
+    
+    def get_preset_str(self,preset):
+        if preset == None:
+            return ""
+        elif preset == JUMP_ALWAYS:
+            return "jump_always"
+        elif preset == JUMP_POSITIVE:
+            return "jump_positive"
+        elif preset == JUMP_ZERO:
+            return "jump_zero"
 
     def print_memory(self): 
         for data in self.memory:
@@ -490,6 +534,7 @@ class VirtualMachine:
                 print(f'type: {self.get_instruction_str(data['type'])}')
                 print(f'operands: {data["operands"]}')
                 print(f'addressing-modes: {data['addressing-modes']}')
+                print(f'preset: {self.get_preset_str(data['preset'])}')
  
             print(f'location: {data['location']}')
             print(f'purpose: {self.get_purpose_str(data['purpose'])}')
