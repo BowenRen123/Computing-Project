@@ -1,0 +1,24 @@
+ 
+# arithmetic/logical
+ADD = 0
+SUB = 1
+LOAD = 2
+STORE = 3
+COMPARE = 4
+JUMP = 5
+# io
+OUTPUT = 6
+INPUT = 7
+HALT = 8
+
+# comparison
+MIN = ADD
+MAX = HALT
+
+
+INSTRUCTION = 255
+DATA = INSTRUCTION + 1
+
+TYPE_FLOAT = DATA + 1
+TYPE_INTEGER = TYPE_FLOAT + 1
+TYPE_STRING = TYPE_INTEGER + 1
