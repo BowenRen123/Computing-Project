@@ -78,16 +78,22 @@ def test_name_duplication():
 def test_execution():
     vm = VirtualMachine()
     
-    vm.add_data('x','24',mode='i')
-    vm.add_data('y','x',mode='i')
+    vm.add_data('x',50,mode='i')
+    vm.add_data('y',25,mode='i')
     vm.add_data('z','y',mode='d')
     vm.add_data('t','r1',mode='r')
-    vm.add_instruction(cs.ADD,[5,2],['i','i'])
-    vm.add_instruction(cs.SUB,[2,3],['i','i'])
-    vm.add_instruction(cs.LOAD,['z',2],['d','i'])
-
-    #print('=' * 12) 
+    vm.add_data('y1','r1',mode='r')
+    # vm.add_instruction(cs.ADD,[5,2],['i','i'])
+    # vm.add_instruction(cs.SUB,[2,3],['i','i'])
+    vm.add_instruction(cs.LOAD,['r1','x'],['r','d'])
+    vm.add_instruction(cs.SUB,['x','y'],['d','d'])
+    vm.add_instruction(cs.OUTPUT)
+    vm.add_instruction(cs.COMPARE,['y','r1'],['d','r'])
+    vm.add_instruction(cs.OUTPUT)
+    vm.add_instruction(cs.JUMP,2)
+    
+    print('=' * 12) 
     vm.run() 
-   # print(vm)
+    # print(vm)
     
 test_execution()

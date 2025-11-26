@@ -27,6 +27,15 @@ class VirtualMachine:
         self.memory_size = memory_size
         # program state
         self.running = False
+        self.register_binds = {'r0':set([]),
+                               'r1':set([]),
+                               'r2':set([]),
+                               'r3':set([]),
+                               'r4':set([]),
+                               'r5':set([]),
+                               'r6':set([]),
+                               'acc':set([]),
+                               'pc':set([])}
 
     def __validate_instruction(self,instruction_type,operands):
         # ensure instruction is valid
@@ -56,7 +65,7 @@ class VirtualMachine:
                 return False
         return True
     
-    def add_instruction(self,instruction_type,operands,modes=None):
+    def add_instruction(self,instruction_type,operands=[],modes=None):
 
         if not modes:
             modes = ['i'] * len(operands) # set all operand to be immediate mode by default
@@ -211,6 +220,10 @@ class VirtualMachine:
         self.memory[self.stack] = data_dict
         self.stack += 1
 
+        # add data to register binding if it points to a register
+        if mode == 'r':
+            self.register_binds[data].add(data_dict['location'])
+
         print("Successfully added data")
 
         return True
@@ -259,7 +272,7 @@ class VirtualMachine:
         
         if modes[0] == 'd':
             self.set_data(src,dest)
-        if modes[0] == 'r':
+        if modes[0] == 'r': 
             self.set_register_value(src,dest)
 
 
@@ -267,8 +280,9 @@ class VirtualMachine:
     #     return (instruction_type in [ADD,SUB,COMPARE,LOAD,STORE] and len(operands) == 2) or \
     #     (instruction_type == JUMP and len(operands) == 1) or (instruction_type in [INPUT,OUTPUT,HALT] and not operands)
         opcode,operands,modes = instruction['type'],instruction['operands'],instruction['addressing-modes']
-        print(f'operand data: {operands}')
+        
         operands = self.parse_operands(operands,modes,opcode) # get the data of all operands
+         
 
         if opcode in [ADD,SUB,COMPARE,LOAD,STORE]:
             if opcode == ADD:
@@ -276,12 +290,20 @@ class VirtualMachine:
             if opcode == SUB:
                 self.acc = operands[0] - operands[1]
             if opcode == COMPARE:
-                self.acc = operands[0] == operands[1]
-            if opcode == LOAD:
+                self.acc = 1 if operands[0] == operands[1] else 0
+            if opcode == LOAD or opcode == STORE:
                 self.copy(operands[0],operands[1],modes)
 
         elif opcode == JUMP:
-            pass
+            address = operands[0]
+            data,purpose = self.get_data(address)
+            
+            if purpose != INSTRUCTION:
+                print(f'Cannot jump to data! ')
+                return
+            
+            self.pc = address
+            
         elif opcode in [INPUT,OUTPUT,HALT]:
             if opcode == INPUT:
                 self.acc = float(input())
@@ -321,12 +343,12 @@ class VirtualMachine:
             data = None
             if mode == 'd':
                 # preserve first operand if instruction involves moving data
-                data = self.get_operand_data(operand) if (opcode not in [LOAD,STORE] or i >= 1) else data
+                data = self.get_operand_data(operand) if (opcode not in [LOAD,STORE] or i >= 1) else operand
             elif mode == 'i':
                 data = operand
             elif mode == 'r':
                 # preserve first operand if instruction involves moving data
-                data = self.get_register_data(operand) if (opcode not in [LOAD,STORE] or i >= 1) else data 
+                data = self.get_register_data(operand) if (opcode not in [LOAD,STORE] or i >= 1) else operand 
 
             operands[i] = data
         return operands    
@@ -352,6 +374,9 @@ class VirtualMachine:
             return self.pc
         
     def set_register_value(self,operand,data):
+        # set all location pointing to register with the data of the register
+        for location in self.register_binds[operand]:
+            self.set_data(location,data)
 
         if operand == "r1":
             self.r1 = data
