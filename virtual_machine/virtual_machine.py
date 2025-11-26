@@ -23,7 +23,12 @@ class VirtualMachine:
         self.r6 = 0  
         # accumulator
         self.acc = 0
-        self.stack = 0 
+        
+        # allocate space for instructions and data in memory 
+        self.instructions_stack = 0
+        self.data_stack = int(memory_size / 2)
+
+
         self.memory_size = memory_size
         # program state
         self.running = False
@@ -36,8 +41,8 @@ class VirtualMachine:
                                'r6':set([]),
                                'acc':set([]),
                                'pc':set([])}
-        self.times_executed = 0
-
+        self.times_executed = 0 
+        
     def __validate_instruction(self,instruction_type,operands):
         # ensure instruction is valid
         if instruction_type not in range(MAX + 1) or instruction_type == None or operands == None:
@@ -52,8 +57,8 @@ class VirtualMachine:
         return (instruction_type in [ADD,SUB,COMPARE,LOAD,STORE] and len(operands) == 2) or \
         (instruction_type == JUMP and len(operands) == 1) or (instruction_type in [INPUT,OUTPUT,HALT] and not operands)
     
-    def memory_full(self):
-        return self.stack >= self.memory_size
+    def memory_full(self,sp):
+        return sp >= self.memory_size
     
     def validate_modes(self,modes,instruction_type):
         for mode in modes:
@@ -106,7 +111,7 @@ class VirtualMachine:
             print("Invalid mode for instruction operand! ")
             return False
 
-        if self.memory_full():
+        if self.memory_full(self.instructions_stack):
             print("Memory is full! ")
             return False
 
@@ -121,15 +126,15 @@ class VirtualMachine:
         instruction = {
         "type":instruction_type,
         "operands":operands,
-        "location":self.stack,
+        "location":self.instructions_stack,
         "purpose":INSTRUCTION,
         "addressing-modes":modes,
         "preset":preset}
 
-        self.memory[self.stack] = instruction
-        self.stack += 1
+        self.memory[self.instructions_stack] = instruction
+        self.instructions_stack += 1
 
-        self.bind_instruction_preset(self.stack - 1,preset)
+        self.bind_instruction_preset(self.instructions_stack - 1,preset)
         print("successfully added instruction")
 
         return True
@@ -227,7 +232,7 @@ class VirtualMachine:
             return False       
         
         # check if memory is full
-        if self.memory_full():
+        if self.memory_full(self.data_stack):
             print("Memory is full! ")
             return False
 
@@ -247,11 +252,11 @@ class VirtualMachine:
         "name":name,
         "type":selected_type,
         "value":data,
-        "location":self.stack,
+        "location":self.data_stack,
         "purpose":DATA,
         "addressing-mode":mode.lower()}
-        self.memory[self.stack] = data_dict
-        self.stack += 1
+        self.memory[self.data_stack] = data_dict
+        self.data_stack += 1
 
         # add data to register binding if it points to a register
         if mode == 'r':
@@ -322,7 +327,7 @@ class VirtualMachine:
     def exec(self,instruction,debug=False):
 
     #     return (instruction_type in [ADD,SUB,COMPARE,LOAD,STORE] and len(operands) == 2) or \
-    #     (instruction_type == JUMP and len(operands) == 1) or (instruction_type in [INPUT,OUTPUT,HALT] and not operands)
+    #     (instruction_type == JUMP and len(operands) == dsadadadsadas1) or (instruction_type in [INPUT,OUTPUT,HALT] and not operands)
         opcode,operands,modes,preset = instruction['type'],instruction['operands'],instruction['addressing-modes'],instruction['preset']
         
         operands = self.parse_operands(operands,modes,opcode) # get the data of all operands
@@ -364,7 +369,7 @@ class VirtualMachine:
         data,purpose = self.get_data(address)
             
         if purpose != INSTRUCTION:
-            print(f'Cannot jump to data! ')
+            print(f'Cannot jump to data at location: {address}!')
             return
             
         self.pc = address

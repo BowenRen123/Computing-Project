@@ -85,12 +85,13 @@ def test_execution():
     vm.add_data('y1','r1',mode='r',notes=4)
     # vm.add_instruction(cs.ADD,[5,2],['i','i'])
     # vm.add_instruction(cs.SUB,[2,3],['i','i'])
-    vm.add_instruction(cs.LOAD,['acc',-1],['r','i'],notes=5)
-    vm.add_instruction(cs.JUMP,[9],notes=6,preset=cs.JUMP_ALWAYS)
-    vm.add_instruction(cs.SUB,['x','y'],['d','d'],notes=7)
-    vm.add_instruction(cs.OUTPUT,notes=8)
-    vm.add_instruction(cs.COMPARE,['y','r1'],['d','r'],notes=9)
-    vm.add_instruction(cs.LOAD,['acc','x'],['r','d'],notes=10)
+    vm.add_instruction(cs.LOAD,['acc',0],['r','i'],notes=5) # 0
+    vm.add_instruction(cs.JUMP,[4],notes=6,preset=cs.JUMP_ZERO) #1
+    vm.add_instruction(cs.SUB,['x','y'],['d','d'],notes=7) #2
+    vm.add_instruction(cs.OUTPUT,notes=8) #3 
+    vm.add_instruction(cs.COMPARE,['y','r1'],['d','r'],notes=9) #4
+    vm.add_instruction(cs.LOAD,['acc','x'],['r','d'],notes=10) #5
+    vm.add_instruction(cs.HALT,notes=11) #6
 
     print('=' * 12) 
     vm.run(True) 
