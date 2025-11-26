@@ -86,14 +86,14 @@ def test_execution():
     # vm.add_instruction(cs.ADD,[5,2],['i','i'])
     # vm.add_instruction(cs.SUB,[2,3],['i','i'])
     vm.add_instruction(cs.LOAD,['r1','x'],['r','d'],notes=5)
-    vm.add_instruction(cs.JUMP,[9],notes=6)
+    vm.add_instruction(cs.JUMP,[8],notes=6)
     vm.add_instruction(cs.SUB,['x','y'],['d','d'],notes=7)
     vm.add_instruction(cs.OUTPUT,notes=8)
     vm.add_instruction(cs.COMPARE,['y','r1'],['d','r'],notes=9)
- 
+    vm.add_instruction(cs.LOAD,['acc','x'],['r','d'],notes=5)
 
     print('=' * 12) 
-    vm.run() 
-    # print(vm)
+    vm.run(True) 
+    print(vm)
     
 test_execution()

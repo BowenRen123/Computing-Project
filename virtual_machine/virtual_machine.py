@@ -247,7 +247,7 @@ class VirtualMachine:
 
         return None
 
-    def run(self):
+    def run(self,debug=False):
         
         self.running = True
         current_instruction = None
@@ -256,13 +256,17 @@ class VirtualMachine:
             current_instruction = self.next_instruction()
              
             if current_instruction: 
-                self.exec(current_instruction)
-                self.increment_pc()
+                self.exec(current_instruction,debug)
+                self.increment_pc(current_instruction['type'])
             else:
                 self.stop()
 
-    def increment_pc(self):
-        self.pc += 1
+    def increment_pc(self,instruction_type):
+        
+        if instruction_type == JUMP:
+            return
+        
+        self.pc += 1 
         if self.pc >= self.memory_size:
             self.stop()
 
@@ -278,7 +282,11 @@ class VirtualMachine:
             self.set_register_value(src,dest)
 
 
-    def exec(self,instruction):
+    def exec_logs(self,instruction,display=True):
+        if display: 
+            print(f'successfully excecuted instruction: {self.get_instruction_str(instruction)}')
+
+    def exec(self,instruction,debug=False):
 
     #     return (instruction_type in [ADD,SUB,COMPARE,LOAD,STORE] and len(operands) == 2) or \
     #     (instruction_type == JUMP and len(operands) == 1) or (instruction_type in [INPUT,OUTPUT,HALT] and not operands)
@@ -314,8 +322,8 @@ class VirtualMachine:
                 print(self.acc)
             elif opcode == HALT:
                 self.stop()
-
-        print(f"successfully executed instruction {self.times_executed} times")
+        if debug:
+            self.exec_logs(instruction['type']) 
         self.times_executed += 1
 
     def get_data_val(self,data,mode):
